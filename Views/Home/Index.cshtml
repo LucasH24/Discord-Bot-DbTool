@@ -1,0 +1,130 @@
+
+<div>
+    <button onclick="updatePlayers()"> Update Stats </button>
+    <button onclick="updateRankings()"> Update Rankings </button>
+</div>
+
+
+<script>
+
+    let players = [];
+
+
+    async function updatePlayers() {
+        const key = "fce878cc-8614-47e6-ba1c-4c20d471493a"
+        const uuid = ""
+        for (i = 0; i < players.length; i++) {
+            const url = "https://api.hypixel.net/player?key=" + key + "&uuid=" + players[i].uuid;
+            try {
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error(`Response status: ${response.status}`);
+                }
+                const json = await response.json();
+                updatePlayer(json);
+            } catch (error) {
+                console.error(error.message);
+            }
+
+        }
+    }
+
+    function updatePlayer(json) {
+        let playerArray = [];
+        playerArray.push(json.player.uuid);
+        playerArray.push(json.player.displayname);
+        playerArray.push(json.player.stats.Arcade.wins_mini_walls);
+        playerArray.push(json.player.stats.Arcade.kills_mini_walls);
+        playerArray.push(json.player.stats.Arcade.final_kills_mini_walls);
+        playerArray.push(json.player.stats.Arcade.wither_kills_mini_walls);
+        playerArray.push(json.player.stats.Arcade.wither_damage_mini_walls);
+        playerArray.push(json.player.stats.Arcade.deaths_mini_walls);
+        playerArray.push(json.player.stats.Arcade.arrows_hit_mini_walls);
+        playerArray.push(json.player.stats.Arcade.arrows_shot_mini_walls);
+
+        $.ajax({
+            url: '@Url.Action("Index", "Home")',
+            data: { player: playerArray },
+            type: "POST",
+        }).done(function () {
+            console.log("Updated " + json.player.displayname);
+        });
+    }
+
+    async function updateRankings() {
+        await fetchData();
+        const criteriaArray = ["wins", "kills", "finals", "witherDamage", "witherKills", "deaths", "arrowsHit", "arrowsShot", "kd", "fkd", "tkd", "wdd", "wkd", "aa", "rate", "kpw", "fpw", "tkpw", "wdpw", "wkpm", "dpw", "spw"]
+        for (i = 0; i < criteriaArray.length; i++) {
+            await sortData(criteriaArray[i], i);
+        }
+        console.log(players);
+        for (i = 0; i < players.length; i++) {
+            let playerRankings = formatPlayerRankings(i)
+            updatePlayerRanking(playerRankings);
+        }
+    }
+
+    function formatPlayerRankings(arrayValue) {
+        let returnValue = [];
+        returnValue.push(players[arrayValue].uuid);
+        returnValue.push(players[arrayValue].rankWins);
+        returnValue.push(players[arrayValue].rankKills);
+        returnValue.push(players[arrayValue].rankFinals);
+        returnValue.push(players[arrayValue].rankWitherDamage);
+        returnValue.push(players[arrayValue].rankWitherKills);
+        returnValue.push(players[arrayValue].rankDeaths);
+        returnValue.push(players[arrayValue].rankArrowsHit);
+        returnValue.push(players[arrayValue].rankArrowsShot);
+        returnValue.push(players[arrayValue].rankKD);
+        returnValue.push(players[arrayValue].rankFKD);
+        returnValue.push(players[arrayValue].rankTKD);
+        returnValue.push(players[arrayValue].rankWDD);
+        returnValue.push(players[arrayValue].rankWKD);
+        returnValue.push(players[arrayValue].rankAA);
+        returnValue.push(players[arrayValue].rankRATE);
+        returnValue.push(players[arrayValue].rankKPW);
+        returnValue.push(players[arrayValue].rankFPW);
+        returnValue.push(players[arrayValue].rankTKPW);
+        returnValue.push(players[arrayValue].rankWDPW);
+        returnValue.push(players[arrayValue].rankWKPW);
+        returnValue.push(players[arrayValue].rankDPW);
+        returnValue.push(players[arrayValue].rankSPW);
+        return returnValue;
+    }
+
+    function sortData(criteria, y) {
+        console.log("Sorting " + criteria);
+        const criteriaArray = ["rankWins", "rankKills", "rankFinals", "rankWitherDamage", "rankWitherKills",  "rankDeaths",  "rankArrowsHit",  "rankArrowsShot",  "rankKD",  "rankFKD",  "rankTKD",  "rankWDD",  "rankWKD",  "rankAA",  "rankRATE",  "rankKPW",  "rankFPW",  "rankTKPW",  "rankWDPW",  "rankWKPW", "rankDPW", "rankSPW"]
+        players.sort(function (a, b) {
+            return b[criteria] - a[criteria];
+        })
+        for (x = 0; x < players.length; x++) {
+            players[x][criteriaArray[y]] = (x + 1);
+        }
+    }
+
+    function updatePlayerRanking(player) {
+        $.ajax({
+            url: '@Url.Action("UpdatePlayerRanking", "Home")',
+            data: { player: player },
+            type: "POST",
+        }).done(function () {
+            console.log("Updated " + player[0]);
+        });
+    }
+
+
+
+
+
+
+
+
+
+    async function fetchData() {
+        var response = await fetch('/Home/GetMiwPlayers');
+        players = await response.json();
+    }
+
+    fetchData();
+</script>
